@@ -38,7 +38,9 @@ siteThree = normalize(splitData$`3`)
 siteFour = normalize(splitData$`4`)
 siteFive = normalize(splitData$`5`)
 
-mergedData = rbind(siteOne,siteTwo,siteThree,siteFour)
+siteThreeMerged = rbind(siteFive,siteThree,siteFour)
+
+mergedData = rbind(siteOne,siteTwo,siteThree)
 # plot(x=siteTwo$Time, y=siteTwo$NEC)
 #   
 
@@ -74,30 +76,54 @@ register_google(key = config[1])
 # check if key is saved
 has_goog_key()
 
-onePoints = data.frame(lon=as.numeric(siteOne$lon), lat=as.numeric(siteOne$lat))
-twoPoints = data.frame(lon=as.numeric(siteTwo$lon), lat=as.numeric(siteTwo$lat))
-threePoints = data.frame(lon=as.numeric(siteThree$lon), lat=as.numeric(siteThree$lat))
-fourPoints = data.frame(lon=as.numeric(siteFour$lon), lat=as.numeric(siteFour$lat))
-fivePoints = data.frame(lon=as.numeric(siteFive$lon), lat=as.numeric(siteFive$lat))
+onePoints = data.frame(lon=as.numeric(siteOne$lon), lat=as.numeric(siteOne$lat), EC=as.numeric(siteOne$NEC), temp=as.numeric(siteOne$NTemp))
+twoPoints = data.frame(lon=as.numeric(siteTwo$lon), lat=as.numeric(siteTwo$lat), EC=as.numeric(siteTwo$NEC), temp=as.numeric(siteTwo$NTemp))
+threePoints = data.frame(lon=as.numeric(siteThreeMerged$lon), lat=as.numeric(siteThreeMerged$lat), EC=as.numeric(siteThreeMerged$NEC), temp=as.numeric(siteThreeMerged$NTemp))
 
 
 # USE WITH GGPLOT
-get_map("Pleasent Valley, New York", zoom = 11) %>% ggmap() +
-  geom_point(data = onePoints, aes(x = lon, y = lat), color = 'red', size = 2) +
-  geom_point(data = twoPoints, aes(x = lon, y = lat), color = 'blue', size = 2) +
-  geom_point(data = threePoints, aes(x = lon, y = lat), color = 'green', size = 2) +
-  geom_point(data = fourPoints, aes(x = lon, y = lat), color = 'black', size = 2) +
-  geom_point(data = fivePoints, aes(x = lon, y = lat), color = 'purple', size = 2) +
-  theme(legend.position = c(0.06, 0.75))
-  # scale_color_manual(name = "Site Number", # or name = element_blank()
-  #                    labels = c("Site 1","Site 2", "Site 3", "Site 4", "Site 5" ),
-  #                    values = c('red', 'blue', 'green', 'black', 'purple'))
+get_map("41.75420 -73.78561", zoom = 12) %>% ggmap() +
+  geom_point(data = onePoints, aes(x = lon, y = lat, color=EC), size = 2 ) +
+  geom_point(data = twoPoints, aes(x = lon, y = lat, color=EC), size = 2 ) +
+  geom_point(data = threePoints, aes(x = lon, y = lat, color=EC), size = 2 ) +
+  scale_colour_gradientn(colors=c("light blue","blue", "black", "orange", "yellow")) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
 
-get_map("Cary Institute", zoom = 14) %>% ggmap() +
-  geom_point(data = threePoints, aes(x = lon, y = lat), color = 'green', size = 2) +
-  geom_point(data = fourPoints, aes(x = lon, y = lat), color = 'black', size = 2) +
-  geom_point(data = fivePoints, aes(x = lon, y = lat), color = 'purple', size = 2)
 
+get_map("41.80420 -73.78561", zoom = 16) %>% ggmap() +
+  geom_point(data = onePoints, aes(x = lon, y = lat, color=EC), size = 2 ) +
+  scale_colour_gradientn(colors=c("light blue","blue", "black", "orange", "yellow")) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+
+get_map("41.71397 -73.84609", zoom = 13) %>% ggmap() +
+  geom_point(data = twoPoints, aes(x = lon, y = lat, color=EC), size = 2 ) +
+  scale_colour_gradientn(colors=c("light blue","blue", "black", "orange", "yellow")) + 
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+
+get_map("41.79155 -73.72755", zoom = 14) %>% ggmap() +
+  geom_point(data = threePoints, aes(x = lon, y = lat, color=EC), size = 2 ) +
+  scale_colour_gradientn(colors=c("light blue","blue", "black", "orange", "yellow")) + 
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
 
 #  --------Plots------
 
@@ -144,8 +170,6 @@ mergedData %>% ggplot(aes(group=`Site Number`,y=as.numeric(NEC))) +
   xlab("Sampling Site Number") +
   ylab("Normalized EC")
 
-mergedData 
-
 mergedData %>% ggplot(aes(`Site Number`,as.numeric(NEC))) + 
   geom_point(width = 0.2, aes(color=mergedData$InFault)) +
   coord_flip() +
@@ -154,7 +178,7 @@ mergedData %>% ggplot(aes(`Site Number`,as.numeric(NEC))) +
   xlab("Sampling Site Number") +
   ylab("Normalized EC")
 
-filteredData %>% 
+mergedData %>% 
   ggplot(aes(x=as.numeric(NEC), color=InFault)) + 
   geom_density(color="darkblue", fill="lightblue") + 
   geom_vline(aes(xintercept=mean(as.numeric(NEC)),
@@ -170,23 +194,59 @@ filteredData %>%
 
 # ----z test -----
 
-View(filteredData)
+siteOneZoneOne = onePoints[1:4,]
+siteOneZoneTwo = onePoints[5:9,]
 
-xBar = mean(as.numeric(filteredData$NEC))
-s = sd(as.numeric(filteredData$NEC))
-n = length(as.numeric(filteredData$NEC))
+siteTwoZoneOne = twoPoints[1:10,]
+siteTwoZoneTwo = twoPoints[11:18,]
 
-x = mean(as.numeric(inFaultData$NEC))
-s1 = sd(as.numeric(inFaultData$NEC))
-n2 = length(as.numeric(inFaultData$NEC))
+siteThreeZoneOne = threePoints[4:20,]
+siteThreeZoneTwo = rbind(threePoints[1:3,],threePoints[21:23,])
+siteThreeZoneThree = threePoints[24:40,]
+siteThreeZoneFour = threePoints[40:46,]
+
+xBar1_1 = mean(as.numeric(siteOneZoneOne$EC))
+xBar1_2 = mean(as.numeric(siteOneZoneTwo$EC))
+
+xBar2_1 = mean(as.numeric(siteTwoZoneOne$EC))
+xBar2_2 = mean(as.numeric(siteTwoZoneTwo$EC))
+
+xBar3_1 = mean(as.numeric(siteThreeZoneOne$EC))
+xBar3_2 = mean(as.numeric(siteThreeZoneTwo$EC))
+xBar3_3 = mean(as.numeric(siteThreeZoneThree$EC))
+xBar3_4 = mean(as.numeric(siteThreeZoneFour$EC))
+
+s1_1 = sd(as.numeric(siteOneZoneOne$EC))
+s1_2 = sd(as.numeric(siteOneZoneTwo$EC))
+
+s2_1 = sd(as.numeric(siteTwoZoneOne$EC))
+s2_2 = sd(as.numeric(siteTwoZoneTwo$EC))
+
+s3_1 = sd(as.numeric(siteThreeZoneOne$EC))
+s3_2 = sd(as.numeric(siteThreeZoneTwo$EC))
+s3_3 = sd(as.numeric(siteThreeZoneThree$EC))
+s3_4 = sd(as.numeric(siteThreeZoneFour$EC))
+
+n1_1 = length(as.numeric(siteOneZoneOne$EC))
+n1_2 = length(as.numeric(siteOneZoneTwo$EC))
+
+n2_1 = length(as.numeric(siteTwoZoneOne$EC))
+n2_2 = length(as.numeric(siteTwoZoneTwo$EC))
+
+n3_1 = length(as.numeric(siteThreeZoneOne$EC))
+n3_2 = length(as.numeric(siteThreeZoneTwo$EC))
+n3_3 = length(as.numeric(siteThreeZoneThree$EC))
+n3_4 = length(as.numeric(siteThreeZoneFour$EC))
 
 
-n = n2             # sample size 
-z = (x-xBar)/(s/sqrt(n2))
+tStat1_1 = (xBar1_2 - xBar1_1)/(s1_2 / sqrt(n1_2))
 
-error = qnorm(.95)
+tStat2_2 = (xBar2_2 - xBar2_1)/(s2_2 / sqrt(n2_2))
 
+tStat3_2 = (xBar3_2 - xBar3_1)/(s3_2 / sqrt(n3_2))
 
+tStat3_3 = (xBar3_3 - xBar3_2)/(s3_3 / sqrt(n3_3))
 
+tStat3_4 = (xBar3_4 - xBar3_3)/(s3_4 / sqrt(n3_4))
 
 
