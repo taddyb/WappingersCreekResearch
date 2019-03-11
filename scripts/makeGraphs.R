@@ -3,12 +3,16 @@
 # install.packages("readxl")
 # install.packages("lubridate")
 # install.packages("ggplot2")
+# install.packages('ggsn')
+# devtools::install_github("oswaldosantos/ggsn")
 library(readxl)
 library(lubridate)
 library(ggplot2)
 library(config)
 library(ggmap)
 library(tidyverse)
+library(ggsn)
+library(legendMap)
 
 # dataPrep
 # takes a file location and returns data split on site number
@@ -47,22 +51,28 @@ mergedData = rbind(siteOne,siteTwo,siteThree)
 # ---------Maps--------- #
 
 # Map stuff:
-# states <- map_data("state")
-# counties <- map_data("county")
-# new_york<- subset(states, region %in% c("new york"))
-# ny_county <- subset(counties, region == "new york")
-# 
-# ny_base <- ggplot(data = new_york, mapping = aes(x = long, y = lat, group = group)) +
-#   coord_fixed(1.3) +
-#   geom_polygon(color = "black", fill = "gray")
-# 
-# gg1 <- ny_base + theme_nothing() +
-#   geom_polygon(data = ny_county, fill = NA, color = "white") +
-#   geom_polygon(color = "black", fill = NA)
-#   # get the state border back on top
-# ggplot(data = new_york) + 
-#   geom_polygon(aes(x = long, y = lat, group = group), fill = "palegreen", color = "black") + 
-#   coord_fixed(1.3)
+states <- map_data("state")
+counties <- map_data("county")
+new_york<- subset(states, region %in% c("new york"))
+ny_county <- subset(counties, region == "new york")
+dutchess <- subset(ny_county, subregion == "dutchess")
+
+
+ny_base <- ggplot(data = new_york, mapping = aes(x = long, y = lat, group = group)) +
+  coord_fixed(1.3) +
+  geom_polygon(color = "black", fill = "gray")
+
+# Use this to create this to show where dutchess county is
+gg1 <- ny_base + theme_nothing() +
+  geom_polygon(data = ny_county, fill = NA, color = "white") +
+  geom_polygon(color = "black", fill = NA) +
+  geom_polygon(color = "black", fill = "black", data= dutchess)
+
+
+  # get the state border back on top
+ggplot(data = new_york) +
+  geom_polygon(aes(x = long, y = lat, group = group), fill = "palegreen", color = "black") +
+  coord_fixed(1.3)
 
 
 Sys.setenv(R_CONFIG_ACTIVE = "config")
@@ -80,12 +90,17 @@ onePoints = data.frame(lon=as.numeric(siteOne$lon), lat=as.numeric(siteOne$lat),
 twoPoints = data.frame(lon=as.numeric(siteTwo$lon), lat=as.numeric(siteTwo$lat), EC=as.numeric(siteTwo$NEC), temp=as.numeric(siteTwo$NTemp))
 threePoints = data.frame(lon=as.numeric(siteThreeMerged$lon), lat=as.numeric(siteThreeMerged$lat), EC=as.numeric(siteThreeMerged$NEC), temp=as.numeric(siteThreeMerged$NTemp))
 
+colnames(onePoints)[3] <- "μS"
+colnames(twoPoints)[3] <- "μS"
+colnames(threePoints)[3] <- "μS"
 
 # USE WITH GGPLOT
-get_map("41.75420 -73.78561", zoom = 12) %>% ggmap() +
-  geom_point(data = onePoints, aes(x = lon, y = lat, color=EC), size = 2 ) +
-  geom_point(data = twoPoints, aes(x = lon, y = lat, color=EC), size = 2 ) +
-  geom_point(data = threePoints, aes(x = lon, y = lat, color=EC), size = 2 ) +
+map <-  get_map("41.75420 -73.78561", zoom = 12)
+
+overlay <- get_map("41.75420 -73.78561", zoom = 12) %>% ggmap() +
+  geom_point(data = onePoints, aes(x = lon, y = lat, color=μS), size = 2 ) +
+  geom_point(data = twoPoints, aes(x = lon, y = lat, color=μS), size = 2 ) +
+  geom_point(data = threePoints, aes(x = lon, y = lat, color=μS), size = 2 ) +
   scale_colour_gradientn(colors=c("light blue","blue", "black", "orange", "yellow")) +
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
@@ -94,9 +109,17 @@ get_map("41.75420 -73.78561", zoom = 12) %>% ggmap() +
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank())
 
+bb <- attr(map, "bb")
+bb2 <- data.frame(long = unlist(bb[c(2, 4)]), lat = unlist(bb[c(1,3)]))
 
-get_map("41.80420 -73.78561", zoom = 16) %>% ggmap() +
-  geom_point(data = onePoints, aes(x = lon, y = lat, color=EC), size = 2 ) +
+north2(overlay, symbol = 16) 
+  # scalebar(x.min=-73.67, x.max =-73.89558, y.min=41.67177 , y.max=41.83569,
+  #          dist = 1, dist_unit = "km", location="topleft",
+  #          transform = TRUE, model = "WGS84")
+
+
+siteOnePlot <- get_map("41.80420 -73.78561", zoom = 16) %>% ggmap() +
+  geom_point(data = onePoints, aes(x = lon, y = lat, color=μS), size = 2 ) +
   scale_colour_gradientn(colors=c("light blue","blue", "black", "orange", "yellow")) +
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
@@ -105,8 +128,10 @@ get_map("41.80420 -73.78561", zoom = 16) %>% ggmap() +
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank())
 
-get_map("41.71397 -73.84609", zoom = 13) %>% ggmap() +
-  geom_point(data = twoPoints, aes(x = lon, y = lat, color=EC), size = 2 ) +
+north2(siteOnePlot, symbol = 16) 
+
+siteTwoPlot <- get_map("41.71397 -73.84609", zoom = 13) %>% ggmap() +
+  geom_point(data = twoPoints, aes(x = lon, y = lat, color=μS), size = 2 ) +
   scale_colour_gradientn(colors=c("light blue","blue", "black", "orange", "yellow")) + 
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
@@ -115,8 +140,10 @@ get_map("41.71397 -73.84609", zoom = 13) %>% ggmap() +
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank())
 
-get_map("41.79155 -73.72755", zoom = 14) %>% ggmap() +
-  geom_point(data = threePoints, aes(x = lon, y = lat, color=EC), size = 2 ) +
+north2(siteTwoPlot, symbol = 16) 
+
+siteThreePlot <- get_map("41.79155 -73.72755", zoom = 14) %>% ggmap() +
+  geom_point(data = threePoints, aes(x = lon, y = lat, color=μS), size = 2 ) +
   scale_colour_gradientn(colors=c("light blue","blue", "black", "orange", "yellow")) + 
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
@@ -124,6 +151,8 @@ get_map("41.79155 -73.72755", zoom = 14) %>% ggmap() +
         axis.title.y=element_blank(),
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank())
+
+north2(siteThreePlot, symbol = 16) 
 
 #  --------Plots------
 
