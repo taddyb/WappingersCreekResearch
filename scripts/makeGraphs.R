@@ -36,15 +36,24 @@ normalize <- function(data){
 }
 
 splitData<- dataPrep("data/salinity-dataset.xlsx")
-siteOne = normalize(splitData$`1`)
-siteTwo = normalize(splitData$`2`)
-siteThree = normalize(splitData$`3`)
-siteFour = normalize(splitData$`4`)
-siteFive = normalize(splitData$`5`)
+siteOneNormal = normalize(splitData$`1`)
+siteTwoNormal = normalize(splitData$`2`)
+siteThreeNormal = normalize(splitData$`3`)
+siteFourNormal = normalize(splitData$`4`)
+siteFiveNormal = normalize(splitData$`5`)
+
+siteOne = splitData$`1`
+siteTwo = splitData$`2`
+siteThree = splitData$`3`
+siteFour = splitData$`4`
+siteFive = splitData$`5`
 
 siteThreeMerged = rbind(siteFive,siteThree,siteFour)
+siteThreeMergedNormal = rbind(siteFiveNormal,siteThreeNormal,siteFourNormal)
 
 mergedData = rbind(siteOne,siteTwo,siteThree)
+mergedDataNormal = rbind(siteOneNormal,siteTwoNormal,siteThreeNormal)
+
 # plot(x=siteTwo$Time, y=siteTwo$NEC)
 #   
 
@@ -66,7 +75,8 @@ ny_base <- ggplot(data = new_york, mapping = aes(x = long, y = lat, group = grou
 gg1 <- ny_base + theme_nothing() +
   geom_polygon(data = ny_county, fill = NA, color = "white") +
   geom_polygon(color = "black", fill = NA) +
-  geom_polygon(color = "black", fill = "black", data= dutchess)
+  geom_polygon(color = "black", fill = "black", data= dutchess) 
+  # geom_point(data = onePoints,  aes(x = lon, y = lat, color=μS, group = group), size = 1) 
 
 
   # get the state border back on top
@@ -86,9 +96,11 @@ register_google(key = config[1])
 # check if key is saved
 has_goog_key()
 
-onePoints = data.frame(lon=as.numeric(siteOne$lon), lat=as.numeric(siteOne$lat), EC=as.numeric(siteOne$NEC), temp=as.numeric(siteOne$NTemp))
-twoPoints = data.frame(lon=as.numeric(siteTwo$lon), lat=as.numeric(siteTwo$lat), EC=as.numeric(siteTwo$NEC), temp=as.numeric(siteTwo$NTemp))
-threePoints = data.frame(lon=as.numeric(siteThreeMerged$lon), lat=as.numeric(siteThreeMerged$lat), EC=as.numeric(siteThreeMerged$NEC), temp=as.numeric(siteThreeMerged$NTemp))
+onePoints = data.frame(lon=as.numeric(siteOneNormal$lon), lat=as.numeric(siteOneNormal$lat), EC=as.numeric(siteOneNormal$EC), temp=as.numeric(siteOneNormal$NTemp))
+twoPoints = data.frame(lon=as.numeric(siteTwoNormal$lon), lat=as.numeric(siteTwoNormal$lat), EC=as.numeric(siteTwoNormal$EC), temp=as.numeric(siteTwoNormal$NTemp))
+threePoints = data.frame(lon=as.numeric(siteThreeMergedNormal$lon), lat=as.numeric(siteThreeMergedNormal$lat), EC=as.numeric(siteThreeMergedNormal$EC), temp=as.numeric(siteThreeMergedNormal$NTemp))
+
+
 
 colnames(onePoints)[3] <- "μS"
 colnames(twoPoints)[3] <- "μS"
@@ -220,62 +232,5 @@ mergedData %>%
   xlab("Normalized EC") +
   scale_color_manual(name = "statistics", values = c(Mean = "blue", CI_UB = "red", CI_LB="dark red"))
 
-
-# ----z test -----
-
-siteOneZoneOne = onePoints[1:4,]
-siteOneZoneTwo = onePoints[5:9,]
-
-siteTwoZoneOne = twoPoints[1:10,]
-siteTwoZoneTwo = twoPoints[11:18,]
-
-siteThreeZoneOne = threePoints[4:20,]
-siteThreeZoneTwo = rbind(threePoints[1:3,],threePoints[21:23,])
-siteThreeZoneThree = threePoints[24:40,]
-siteThreeZoneFour = threePoints[40:46,]
-
-xBar1_1 = mean(as.numeric(siteOneZoneOne$EC))
-xBar1_2 = mean(as.numeric(siteOneZoneTwo$EC))
-
-xBar2_1 = mean(as.numeric(siteTwoZoneOne$EC))
-xBar2_2 = mean(as.numeric(siteTwoZoneTwo$EC))
-
-xBar3_1 = mean(as.numeric(siteThreeZoneOne$EC))
-xBar3_2 = mean(as.numeric(siteThreeZoneTwo$EC))
-xBar3_3 = mean(as.numeric(siteThreeZoneThree$EC))
-xBar3_4 = mean(as.numeric(siteThreeZoneFour$EC))
-
-s1_1 = sd(as.numeric(siteOneZoneOne$EC))
-s1_2 = sd(as.numeric(siteOneZoneTwo$EC))
-
-s2_1 = sd(as.numeric(siteTwoZoneOne$EC))
-s2_2 = sd(as.numeric(siteTwoZoneTwo$EC))
-
-s3_1 = sd(as.numeric(siteThreeZoneOne$EC))
-s3_2 = sd(as.numeric(siteThreeZoneTwo$EC))
-s3_3 = sd(as.numeric(siteThreeZoneThree$EC))
-s3_4 = sd(as.numeric(siteThreeZoneFour$EC))
-
-n1_1 = length(as.numeric(siteOneZoneOne$EC))
-n1_2 = length(as.numeric(siteOneZoneTwo$EC))
-
-n2_1 = length(as.numeric(siteTwoZoneOne$EC))
-n2_2 = length(as.numeric(siteTwoZoneTwo$EC))
-
-n3_1 = length(as.numeric(siteThreeZoneOne$EC))
-n3_2 = length(as.numeric(siteThreeZoneTwo$EC))
-n3_3 = length(as.numeric(siteThreeZoneThree$EC))
-n3_4 = length(as.numeric(siteThreeZoneFour$EC))
-
-
-tStat1_1 = (xBar1_2 - xBar1_1)/(s1_2 / sqrt(n1_2))
-
-tStat2_2 = (xBar2_2 - xBar2_1)/(s2_2 / sqrt(n2_2))
-
-tStat3_2 = (xBar3_2 - xBar3_1)/(s3_2 / sqrt(n3_2))
-
-tStat3_3 = (xBar3_3 - xBar3_2)/(s3_3 / sqrt(n3_3))
-
-tStat3_4 = (xBar3_4 - xBar3_3)/(s3_4 / sqrt(n3_4))
 
 
