@@ -1,5 +1,5 @@
 # Road Salts and Faults: 
-## Evidence for preferential transport of high salinity groundwater via geologic structures that connect highways to streams
+### Evidence for preferential transport of high salinity groundwater via geologic structures that connect highways to streams
 
 This repository contains the code to Tadd Bindas' and Zion Klos' Fall 2018 research on stream salinty. 
 
