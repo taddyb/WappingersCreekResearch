@@ -1,0 +1,106 @@
+---
+title: "make Graphs notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+---
+
+#### Imports:
+```{r}
+# install.packages("readxl")
+# install.packages("lubridate")
+# install.packages("ggplot2")
+# install.packages('ggsn')
+# install.packages('config')
+# install.packages('devtools')
+# devtools::install_github("oswaldosantos/ggsn")
+# install.packages('tidyverse')
+# install.packages('ggmap')
+# install.packages('maps')
+library(readxl)
+library(lubridate)
+library(ggplot2)
+library(config)
+library(ggmap)
+library(tidyverse)
+library(ggsn)
+library(maps)
+```
+
+#### Read data
+```{r}
+data <- read_excel("data/ChlorideData-WappingersCreek-20July2020.xlsx", skip=1)
+data <- data[-1,]
+data
+```
+
+#### Map Creation
+```{r}
+states <- map_data("state")
+counties <- map_data("county")
+new_york<- subset(states, region %in% c("new york"))
+ny_county <- subset(counties, region == "new york")
+dutchess <- subset(ny_county, subregion == "dutchess")
+
+
+ny_base <- ggplot(data = new_york, mapping = aes(x = long, y = lat, group = group)) +
+  coord_fixed(1.3) +
+  geom_polygon(color = "black", fill = "gray")
+
+ny_base
+```
+```{r}
+gg1 <- ny_base + theme_nothing() +
+  geom_polygon(data = ny_county, fill = NA, color = "white") +
+  geom_polygon(color = "black", fill = NA) +
+  geom_polygon(color = "black", fill = "black", data= dutchess) 
+  # geom_point(data = onePoints,  aes(x = lon, y = lat, color=μS, group = group), size = 1) 
+
+
+  # get the state border back on top
+# ggplot(data = new_york) +
+#   geom_polygon(aes(x = long, y = lat, group = group), fill = "palegreen", color = "black") +
+#   coord_fixed(1.3)
+gg1
+```
+
+#### Config/API key
+```{r}
+devtools::install_github("fresques/ggmap")
+library('ggmap')
+Sys.setenv(R_CONFIG_ACTIVE = "config")
+config <- config::get(file = "config.yml")
+config[1]
+register_google(key = config[1])
+# check if key is saved
+# has_goog_key()
+```
+
+### Site Three mapping
+```{r}
+data_points = data.frame(lon=as.numeric(data$lon), lat=as.numeric(data$lat), CL=as.numeric(data$Cl), temp=as.numeric(data$Temp))
+
+coordinates =[41.75420, -73.78561]
+map <-  get_map(location=coordinates, zoom = 12)
+map
+
+```
+
+//TODO: 
+- Finish creating map
+- run statistics
+
