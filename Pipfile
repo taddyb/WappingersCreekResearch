@@ -8,6 +8,8 @@ jupyter = "*"
 arcgis = "*"
 ipython = "*"
 pandas = "*"
+gmplot = "*"
+"ruamel.yaml" = "*"
 
 [dev-packages]
 
