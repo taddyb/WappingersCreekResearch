@@ -3,14 +3,14 @@
 
 This repository contains the code to Tadd Bindas' and Zion Klos' Fall 2018 research on stream salinty. 
 
-The file architecture is as follows:
+The repo is as follows:
 ```
 |-- data/
-    |-- salinity-dataset.xlsx
+    |-- datasets used in making the figures
 |-- graphs/
     |-- _All plot .png files generated from the research_
 |-- scripts/
-    |-- makeGraphs.R
+    |-- makeGraphs.R (script to make the graphs)
     |-- statistics.R
 |-- poster/ 
     |-- _The poster created for presenting research_
